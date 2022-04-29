@@ -309,3 +309,4 @@ clickhouse_database/data/
 clickhouse_database/metadata/
 clickhouse_database/preprocessed_configs/
 clickhouse_database/status
+dbdata/

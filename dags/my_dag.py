@@ -6,6 +6,8 @@ from datetime import datetime
 from random import randint
 
 from airflow.operators.bash_operator import BashOperator
+from airflow.utils.task_group import TaskGroup
+
 
 def _training_model():
     return randint(1, 10)
@@ -33,20 +35,23 @@ with DAG(
     schedule_interval="@daily",
     catchup=False
 ) as dag:
-    training_model_A = PythonOperator(
-        task_id="training_model_A",
-        python_callable=_training_model
-    )
+    
 
-    training_model_B = PythonOperator(
-        task_id="training_model_B",
-        python_callable=_training_model
-    )
+    with TaskGroup("processing ttasks", ) as processing_tasks:
+        training_model_A = PythonOperator(
+            task_id="training_model_A",
+            python_callable=_training_model
+        )
 
-    training_model_C = PythonOperator(
-        task_id="training_model_C",
-        python_callable=_training_model
-    )
+        training_model_B = PythonOperator(
+            task_id="training_model_B",
+            python_callable=_training_model
+        )
+
+        training_model_C = PythonOperator(
+            task_id="training_model_C",
+            python_callable=_training_model
+        )
 
     choose_best_model = BranchPythonOperator(
         task_id="choose_best_model",
@@ -54,13 +59,14 @@ with DAG(
         provide_context=True
     )
 
-    accurate = BashOperator(
-        task_id="accurate",
-        bash_command="echo 'accurate'"
-    )
-    inaccurate = BashOperator(
-        task_id="inaccurate",
-        bash_command="echo 'inaccurate'"
-    )
+    with TaskGroup("bash ttasks", ) as bash_tasks:
+        accurate = BashOperator(
+            task_id="accurate",
+            bash_command="echo 'accurate'"
+        )
+        inaccurate = BashOperator(
+            task_id="inaccurate",
+            bash_command="echo 'inaccurate'"
+        )
 
-    [training_model_A, training_model_B, training_model_C] >> choose_best_model >> [accurate, inaccurate]
+    processing_tasks >> choose_best_model >> bash_tasks
