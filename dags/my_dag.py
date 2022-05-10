@@ -37,7 +37,7 @@ with DAG(
 ) as dag:
     
 
-    with TaskGroup("processing ttasks", ) as processing_tasks:
+    with TaskGroup("processing_ttasks", ) as processing_tasks:
         training_model_A = PythonOperator(
             task_id="training_model_A",
             python_callable=_training_model
@@ -59,7 +59,7 @@ with DAG(
         provide_context=True
     )
 
-    with TaskGroup("bash ttasks", ) as bash_tasks:
+    with TaskGroup("bash_ttasks", ) as bash_tasks:
         accurate = BashOperator(
             task_id="accurate",
             bash_command="echo 'accurate'"
